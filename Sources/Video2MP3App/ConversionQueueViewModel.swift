@@ -40,6 +40,8 @@ final class ConversionQueueViewModel: ObservableObject {
     func chooseVideos() {
         let panel = NSOpenPanel()
         panel.title = "选择视频"
+        panel.prompt = "选择"
+        panel.message = "请选择要转换为 MP3 的视频文件。"
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = true
@@ -55,6 +57,8 @@ final class ConversionQueueViewModel: ObservableObject {
     func chooseFolder() {
         let panel = NSOpenPanel()
         panel.title = "选择文件夹"
+        panel.prompt = "选择"
+        panel.message = "请选择包含视频的文件夹。"
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
@@ -67,6 +71,8 @@ final class ConversionQueueViewModel: ObservableObject {
     func chooseOutputDirectory() {
         let panel = NSOpenPanel()
         panel.title = "输出到"
+        panel.prompt = "选择"
+        panel.message = "请选择 MP3 文件的保存位置。"
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.canCreateDirectories = true

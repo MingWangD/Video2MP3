@@ -4,11 +4,12 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="Video2MP3"
 CONFIGURATION="${CONFIGURATION:-release}"
-VERSION="${VERSION:-0.1.0}"
+VERSION="${VERSION:-0.1.1}"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
 ARCH=""
 UNIVERSAL="false"
 FFMPEG_PATH="${FFMPEG_PATH:-$ROOT_DIR/Resources/ffmpeg/ffmpeg}"
+ICON_PATH="$ROOT_DIR/Assets/AppIcon.icns"
 
 usage() {
   cat <<'USAGE'
@@ -107,6 +108,22 @@ mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 cp "$EXECUTABLE_PATH" "$MACOS_DIR/$APP_NAME"
 chmod +x "$MACOS_DIR/$APP_NAME"
 
+if [[ -f "$ICON_PATH" ]]; then
+  cp "$ICON_PATH" "$RESOURCES_DIR/AppIcon.icns"
+else
+  echo "warning: app icon not found at $ICON_PATH" >&2
+fi
+
+mkdir -p "$RESOURCES_DIR/zh-Hans.lproj" "$RESOURCES_DIR/en.lproj"
+cat > "$RESOURCES_DIR/zh-Hans.lproj/InfoPlist.strings" <<'STRINGS'
+CFBundleDisplayName = "Video2MP3";
+CFBundleName = "Video2MP3";
+STRINGS
+cat > "$RESOURCES_DIR/en.lproj/InfoPlist.strings" <<'STRINGS'
+CFBundleDisplayName = "Video2MP3";
+CFBundleName = "Video2MP3";
+STRINGS
+
 if [[ -f "$FFMPEG_PATH" ]]; then
   cp "$FFMPEG_PATH" "$RESOURCES_DIR/ffmpeg"
   chmod +x "$RESOURCES_DIR/ffmpeg"
@@ -130,6 +147,17 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
   <string>$APP_NAME</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>zh-Hans</string>
+  <key>CFBundleAllowMixedLocalizations</key>
+  <true/>
+  <key>CFBundleLocalizations</key>
+  <array>
+    <string>zh-Hans</string>
+    <string>en</string>
+  </array>
   <key>CFBundleShortVersionString</key>
   <string>$VERSION</string>
   <key>CFBundleVersion</key>

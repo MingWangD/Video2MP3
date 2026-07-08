@@ -8,54 +8,11 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            toolbar
-            Divider()
             mainContent
             Divider()
             footer
         }
         .background(Color(nsColor: .windowBackgroundColor))
-    }
-
-    private var toolbar: some View {
-        HStack(spacing: 10) {
-            Button {
-                viewModel.chooseVideos()
-            } label: {
-                Label("选择视频", systemImage: "film")
-            }
-
-            Button {
-                viewModel.chooseFolder()
-            } label: {
-                Label("选择文件夹", systemImage: "folder")
-            }
-
-            Divider()
-                .frame(height: 22)
-
-            Button {
-                viewModel.chooseOutputDirectory()
-            } label: {
-                Label("输出到", systemImage: "folder.badge.gearshape")
-            }
-
-            Text(viewModel.settings.outputDirectory?.path(percentEncoded: false) ?? "未选择输出文件夹")
-                .font(.callout)
-                .foregroundStyle(viewModel.settings.outputDirectory == nil ? .secondary : .primary)
-                .lineLimit(1)
-                .truncationMode(.middle)
-
-            Spacer()
-
-            Button(role: .destructive) {
-                viewModel.clearQueue()
-            } label: {
-                Label("清空", systemImage: "trash")
-            }
-            .disabled(viewModel.items.isEmpty || viewModel.isConverting)
-        }
-        .padding(14)
     }
 
     private var mainContent: some View {
@@ -135,6 +92,12 @@ struct ContentView: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
                 Spacer()
+                Button(role: .destructive) {
+                    viewModel.clearQueue()
+                } label: {
+                    Label("清空", systemImage: "trash")
+                }
+                .disabled(viewModel.items.isEmpty || viewModel.isConverting)
             }
             .padding([.top, .horizontal], 16)
             .padding(.bottom, 8)
@@ -186,6 +149,9 @@ struct ContentView: View {
 
             Spacer()
 
+            outputDirectoryControl
+                .frame(minWidth: 320, idealWidth: 460, maxWidth: 620)
+
             Button {
                 viewModel.openOutputDirectory()
             } label: {
@@ -211,6 +177,52 @@ struct ContentView: View {
             }
         }
         .padding(14)
+    }
+
+    private var outputDirectoryControl: some View {
+        HStack(spacing: 10) {
+            Button {
+                viewModel.chooseOutputDirectory()
+            } label: {
+                Label("输出到", systemImage: "folder.badge.gearshape")
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(viewModel.settings.outputDirectory?.path(percentEncoded: false) ?? "请选择输出文件夹")
+                    .font(.callout)
+                    .foregroundStyle(viewModel.settings.outputDirectory == nil ? outputPromptColor : .primary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+
+                Text(outputPrompt)
+                    .font(.caption)
+                    .foregroundStyle(outputPromptColor)
+                    .lineLimit(1)
+            }
+        }
+    }
+
+    private var outputPrompt: String {
+        if viewModel.items.isEmpty {
+            return "添加视频后选择输出文件夹。"
+        }
+        if viewModel.settings.outputDirectory == nil {
+            return "请选择输出文件夹后开始转换。"
+        }
+        if viewModel.canStart {
+            return "准备就绪，可以开始转换。"
+        }
+        return "输出目录已选择。"
+    }
+
+    private var outputPromptColor: Color {
+        if !viewModel.items.isEmpty && viewModel.settings.outputDirectory == nil {
+            return .orange
+        }
+        if viewModel.canStart {
+            return .green
+        }
+        return .secondary
     }
 
     private func loadDroppedURLs(_ providers: [NSItemProvider]) {

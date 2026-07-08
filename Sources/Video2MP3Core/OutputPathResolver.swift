@@ -13,7 +13,7 @@ public struct OutputPathResolver {
         }
 
         let relativePath = settings.preserveFolderStructure ? item.relativePath : item.sourceURL.lastPathComponent
-        let relativeWithoutExtension = URL(fileURLWithPath: relativePath).deletingPathExtension().path
+        let relativeWithoutExtension = (relativePath as NSString).deletingPathExtension
         let desiredURL = outputDirectory
             .appendingPathComponent(relativeWithoutExtension, isDirectory: false)
             .appendingPathExtension("mp3")

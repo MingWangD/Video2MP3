@@ -16,12 +16,20 @@ Video2MP3 是一个原生 macOS 小工具，用于从常见视频文件中提取
 
 ## 下载
 
-在 GitHub Releases 中下载与你的 Mac 芯片匹配的版本：
+Video2MP3 是一个有可视化界面的 macOS app。发布包内置 ffmpeg，普通用户不需要写代码，也不需要手动安装 ffmpeg。
 
-- `Video2MP3-macOS-arm64.zip`：Apple Silicon，M 系列芯片。
-- `Video2MP3-macOS-x86_64.zip`：Intel Mac。
+在 GitHub Releases 中优先下载与你的 Mac 芯片匹配的 DMG：
 
-解压后把 `Video2MP3.app` 拖到“应用程序”文件夹即可。
+- `Video2MP3-macOS-arm64.dmg`：Apple Silicon，M 系列芯片。
+- `Video2MP3-macOS-x86_64.dmg`：Intel Mac。
+
+安装方式：
+
+1. 打开下载的 DMG。
+2. 将 `Video2MP3.app` 拖到 `Applications`。
+3. 从“应用程序”文件夹打开 Video2MP3。
+
+zip 文件也会作为备用下载方式保留。解压后同样可以得到 `Video2MP3.app`。
 
 v0.1.0 使用 ad-hoc signing，尚未 notarize。如果首次打开时 macOS 阻止启动，可以：
 
@@ -72,7 +80,7 @@ swift test
 
 ## 打包
 
-打包当前机器架构：
+打包当前机器架构的 app 和 zip：
 
 ```bash
 scripts/package_app.sh
@@ -83,6 +91,13 @@ scripts/package_app.sh
 ```bash
 scripts/package_app.sh --arch arm64
 scripts/package_app.sh --arch x86_64
+```
+
+生成 DMG：
+
+```bash
+scripts/package_dmg.sh --arch arm64
+scripts/package_dmg.sh --arch x86_64
 ```
 
 生成 universal 包需要完整 Xcode：
@@ -96,7 +111,9 @@ scripts/package_app.sh --universal
 
 - `dist/Video2MP3.app`
 - `dist/Video2MP3-macOS-arm64.zip`
+- `dist/Video2MP3-macOS-arm64.dmg`
 - `dist/Video2MP3-macOS-x86_64.zip`
+- `dist/Video2MP3-macOS-x86_64.dmg`
 - `dist/Video2MP3-macOS-universal.zip`
 
 具体文件取决于打包参数。
@@ -110,7 +127,7 @@ scripts/package_app.sh --universal
 - 安装并内置 ffmpeg。
 - 运行构建和测试。
 - 对 app 做 ad-hoc signing。
-- 上传两个 zip 到 GitHub Release。
+- 上传 zip 和 DMG 到 GitHub Release。
 
 示例：
 

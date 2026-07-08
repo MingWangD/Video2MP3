@@ -47,17 +47,24 @@ jobs:
       - name: Package app
         run: scripts/package_app.sh --arch "${{ matrix.arch }}"
 
+      - name: Package DMG
+        run: scripts/package_dmg.sh --arch "${{ matrix.arch }}"
+
       - name: Verify app bundle
         run: |
           test -x "dist/Video2MP3.app/Contents/MacOS/Video2MP3"
           test -x "dist/Video2MP3.app/Contents/Resources/ffmpeg"
           codesign --verify --deep --strict "dist/Video2MP3.app"
+          test -s "dist/Video2MP3-macOS-${{ matrix.arch }}.zip"
+          test -s "dist/Video2MP3-macOS-${{ matrix.arch }}.dmg"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: Video2MP3-macOS-${{ matrix.arch }}
-          path: dist/Video2MP3-macOS-${{ matrix.arch }}.zip
+          path: |
+            dist/Video2MP3-macOS-${{ matrix.arch }}.zip
+            dist/Video2MP3-macOS-${{ matrix.arch }}.dmg
 
   publish:
     name: Publish release
@@ -76,14 +83,18 @@ jobs:
           draft: ${{ !startsWith(github.ref, 'refs/tags/') }}
           tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('manual-{0}', github.run_number) }}
           name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('Manual build {0}', github.run_number) }}
-          files: artifacts/**/*.zip
+          files: |
+            artifacts/**/*.zip
+            artifacts/**/*.dmg
           body: |
             ## Video2MP3 v0.1.0
 
-            下载与你的 Mac 芯片匹配的版本：
+            推荐下载 DMG 安装包，选择与你的 Mac 芯片匹配的版本：
 
-            - `Video2MP3-macOS-arm64.zip`：Apple Silicon，M 系列芯片。
-            - `Video2MP3-macOS-x86_64.zip`：Intel Mac。
+            - `Video2MP3-macOS-arm64.dmg`：Apple Silicon，M 系列芯片。
+            - `Video2MP3-macOS-x86_64.dmg`：Intel Mac。
+
+            打开 DMG 后，将 `Video2MP3.app` 拖到 `Applications`。zip 附件也保留为备用下载方式。
 
             这个版本使用 ad-hoc signing，尚未 notarize。首次打开时，如果 macOS 阻止启动，请在“系统设置 > 隐私与安全性”中允许打开，或在 Finder 中右键 app 后选择“打开”。
 

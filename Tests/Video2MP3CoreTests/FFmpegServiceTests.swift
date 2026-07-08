@@ -36,4 +36,10 @@ final class FFmpegServiceTests: XCTestCase {
 
         XCTAssertEqual(error.localizedDescription, "未找到音轨。这个视频可能没有可提取的音频。")
     }
+
+    func testHumanizesMissingDynamicLibraryErrors() {
+        let error = Video2MP3Error.processTerminatedBySignal(6, "dyld: Library not loaded: /opt/homebrew/lib/libavcodec.dylib")
+
+        XCTAssertEqual(error.localizedDescription, "转换引擎异常退出，信号：6。转换引擎缺少运行依赖。请下载最新版本后重试。")
+    }
 }

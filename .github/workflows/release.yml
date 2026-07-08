@@ -57,6 +57,11 @@ jobs:
         run: |
           test -x "dist/Video2MP3.app/Contents/MacOS/Video2MP3"
           test -x "dist/Video2MP3.app/Contents/Resources/ffmpeg"
+          dist/Video2MP3.app/Contents/Resources/ffmpeg -version
+          if find dist/Video2MP3.app/Contents/Resources -type f -perm +111 -print0 | xargs -0 otool -L | grep -E '/opt/homebrew|/usr/local'; then
+            echo "Found non-portable Homebrew library references in packaged runtime." >&2
+            exit 1
+          fi
           codesign --verify --deep --strict "dist/Video2MP3.app"
           test -s "dist/Video2MP3-macOS-${{ matrix.arch }}.zip"
           test -s "dist/Video2MP3-macOS-${{ matrix.arch }}.dmg"

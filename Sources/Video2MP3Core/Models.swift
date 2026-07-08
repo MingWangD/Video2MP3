@@ -88,6 +88,7 @@ public enum Video2MP3Error: LocalizedError, Equatable, Sendable {
     case ffmpegNotFound
     case processLaunchFailed(String)
     case outputDirectoryNotWritable(String)
+    case processTerminatedBySignal(Int32, String)
     case conversionFailed(String)
     case cancelled
 
@@ -101,6 +102,12 @@ public enum Video2MP3Error: LocalizedError, Equatable, Sendable {
             "无法启动 ffmpeg：\(message)"
         case let .outputDirectoryNotWritable(message):
             "无法写入输出文件夹：\(message)"
+        case let .processTerminatedBySignal(signal, message):
+            if message.isEmpty {
+                "转换引擎异常退出，信号：\(signal)。"
+            } else {
+                "转换引擎异常退出，信号：\(signal)。\(Self.humanReadableConversionMessage(from: message))"
+            }
         case let .conversionFailed(message):
             Self.humanReadableConversionMessage(from: message)
         case .cancelled:
@@ -115,6 +122,9 @@ public enum Video2MP3Error: LocalizedError, Equatable, Sendable {
         }
         if lowercased.contains("permission denied") || lowercased.contains("operation not permitted") {
             return "无法写入输出文件夹。请检查文件夹权限后重试。"
+        }
+        if lowercased.contains("library not loaded") || lowercased.contains("dyld") {
+            return "转换引擎缺少运行依赖。请下载最新版本后重试。"
         }
         if lowercased.contains("no such file or directory") {
             return "找不到输入文件或输出路径。请确认文件仍然存在。"

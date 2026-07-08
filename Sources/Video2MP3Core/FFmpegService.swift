@@ -15,6 +15,7 @@ public final class FFmpegService: @unchecked Sendable {
     private let outputPathResolver: OutputPathResolver
     private let processLock = NSLock()
     private var currentProcess: Process?
+    private var cancellationRequested = false
 
     public init(
         executableURLProvider: @escaping @Sendable () -> URL? = FFmpegService.defaultExecutableURL,
@@ -89,6 +90,7 @@ public final class FFmpegService: @unchecked Sendable {
 
     public func cancel() {
         processLock.lock()
+        cancellationRequested = true
         let process = currentProcess
         processLock.unlock()
         process?.terminate()
@@ -138,10 +140,15 @@ public final class FFmpegService: @unchecked Sendable {
 
                 process.terminationHandler = { [weak self] terminatedProcess in
                     pipe.fileHandleForReading.readabilityHandler = nil
-                    self?.clearCurrentProcess(terminatedProcess)
+                    let wasCancelled = self?.clearCurrentProcess(terminatedProcess) ?? false
 
                     if terminatedProcess.terminationReason == .uncaughtSignal {
-                        resumeOnce(.failure(Video2MP3Error.cancelled))
+                        if wasCancelled {
+                            resumeOnce(.failure(Video2MP3Error.cancelled))
+                        } else {
+                            let message = stderrBuffer.stringValue().trimmingCharacters(in: .whitespacesAndNewlines)
+                            resumeOnce(.failure(Video2MP3Error.processTerminatedBySignal(terminatedProcess.terminationStatus, message)))
+                        }
                         return
                     }
 
@@ -169,16 +176,20 @@ public final class FFmpegService: @unchecked Sendable {
 
     private func setCurrentProcess(_ process: Process) {
         processLock.lock()
+        cancellationRequested = false
         currentProcess = process
         processLock.unlock()
     }
 
-    private func clearCurrentProcess(_ process: Process) {
+    private func clearCurrentProcess(_ process: Process) -> Bool {
         processLock.lock()
+        let wasCancelled = cancellationRequested
         if currentProcess === process {
             currentProcess = nil
         }
+        cancellationRequested = false
         processLock.unlock()
+        return wasCancelled
     }
 
     static func parseProgress(from text: String) -> Double? {

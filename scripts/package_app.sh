@@ -110,6 +110,7 @@ chmod +x "$MACOS_DIR/$APP_NAME"
 if [[ -f "$FFMPEG_PATH" ]]; then
   cp "$FFMPEG_PATH" "$RESOURCES_DIR/ffmpeg"
   chmod +x "$RESOURCES_DIR/ffmpeg"
+  "$ROOT_DIR/scripts/bundle_ffmpeg_deps.sh" "$APP_DIR"
 else
   echo "warning: ffmpeg not found at $FFMPEG_PATH; app will require VIDEO2MP3_FFMPEG_PATH or a Homebrew ffmpeg during development." >&2
 fi
@@ -142,6 +143,16 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
 </dict>
 </plist>
 PLIST
+
+if [[ -d "$RESOURCES_DIR/lib" ]]; then
+  while IFS= read -r library_path; do
+    codesign --force --sign - "$library_path"
+  done < <(find "$RESOURCES_DIR/lib" -type f -name '*.dylib' | sort)
+fi
+
+if [[ -x "$RESOURCES_DIR/ffmpeg" ]]; then
+  codesign --force --sign - "$RESOURCES_DIR/ffmpeg"
+fi
 
 codesign --force --deep --sign - "$APP_DIR"
 codesign --verify --deep --strict "$APP_DIR"
